@@ -1,0 +1,9 @@
+node_modules/
+.next/
+apps/frontend/.next/
+apps/backend/.env
+apps/backend/dist/
+apps/backend/build/
+.claude/
+*.log
+.DS_Store
