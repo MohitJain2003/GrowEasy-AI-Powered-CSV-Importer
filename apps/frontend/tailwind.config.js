@@ -1,5 +1,6 @@
 /** @type {import('tailwindcss').Config} */
 module.exports = {
+  darkMode: 'class',
   content: [
     require('path').join(__dirname, "./app/**/*.{js,ts,jsx,tsx,mdx}").replace(/\\/g, '/'),
     require('path').join(__dirname, "./components/**/*.{js,ts,jsx,tsx,mdx}").replace(/\\/g, '/'),
@@ -7,9 +8,9 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        background: 'rgb(9, 9, 11)', // dark zinc
-        foreground: 'rgb(250, 250, 250)',
-        border: 'rgba(63, 63, 70, 0.4)', // semi-transparent zinc-700
+        background: 'var(--bg-color)',
+        foreground: 'var(--fg-color)',
+        border: 'var(--border-color)',
         primary: {
           DEFAULT: 'rgb(99, 102, 241)', // Indigo
           hover: 'rgb(79, 70, 229)',
@@ -27,8 +28,8 @@ module.exports = {
           bg: 'rgba(245, 158, 11, 0.1)',
         },
         card: {
-          DEFAULT: 'rgba(24, 24, 27, 0.6)', // Glassmorphism dark zinc
-          border: 'rgba(63, 63, 70, 0.3)',
+          DEFAULT: 'var(--card-bg)',
+          border: 'var(--card-border)',
         }
       },
       fontFamily: {

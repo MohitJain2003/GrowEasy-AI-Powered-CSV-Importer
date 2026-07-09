@@ -18,6 +18,8 @@ export const metadata = {
   description: 'Intelligently map and extract CRM leads from any CSV structure with advanced semantic AI.',
 };
 
+import Header from '../components/Header';
+
 export default function RootLayout({
   children,
 }: {
@@ -27,11 +29,14 @@ export default function RootLayout({
     <html lang="en" className={`${outfit.variable} ${jetbrainsMono.variable}`}>
       <body className="bg-background text-foreground antialiased selection:bg-indigo-500/30">
         <div className="relative min-h-screen flex flex-col justify-between">
+          {/* Fixed Header */}
+          <Header />
+
           {/* Subtle Ambient Background Glowing effects */}
           <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] rounded-full bg-indigo-500/5 blur-[120px] pointer-events-none" />
           <div className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] rounded-full bg-emerald-500/5 blur-[120px] pointer-events-none" />
           
-          <main className="flex-1 w-full max-w-7xl mx-auto px-4 py-8 sm:px-6 lg:px-8 z-10">
+          <main className="flex-1 w-full max-w-7xl mx-auto px-4 pt-24 pb-8 sm:px-6 lg:px-8 z-10">
             {children}
           </main>
 
