@@ -250,6 +250,16 @@ export class AIService {
       } catch (err: any) {
         console.warn(`Groq failed for batch, trying next fallback. Error: ${err.message}`);
         this.disabledProviders.add('groq'); // Disable for session immediately on first failure
+
+        // Resilient Fail-Fast: If Groq failed due to a network connection timeout or abort,
+        // assume the environment is offline/sandboxed and disable all other providers to prevent cascade timeouts.
+        const errMsg = String(err.message || '').toLowerCase();
+        if (errMsg.includes('timed out') || errMsg.includes('fetch failed') || errMsg.includes('aborted') || errMsg.includes('timeout')) {
+          console.warn('Network timeout detected on first provider. Disabling all external AI models to prevent timeout cascades.');
+          this.disabledProviders.add('sambanova');
+          this.disabledProviders.add('cerebras');
+          this.disabledProviders.add('gemini');
+        }
       }
     }
 
