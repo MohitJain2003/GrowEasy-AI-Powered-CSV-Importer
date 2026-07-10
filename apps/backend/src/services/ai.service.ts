@@ -561,14 +561,13 @@ Ensure output is ONLY the raw JSON object. Do not include markdown wraps.
 
     // 1. Mark skipped rows as matched
     for (const skip of result.skipped) {
+      if (!skip.row) continue;
       const match = batch.find(r => {
-        const rEmail = r.First_Email || r.email || r['Mail Address'] || '';
-        const rPhone = r.Cellular_Phone || r.mobile || r['Contact Number'] || '';
-        const rName = r.Client_FullName || r.name || r['Full Name'] || '';
-        
-        return (rEmail && sMatch(rEmail, skip.row.email || skip.row.First_Email || skip.row['Mail Address'])) ||
-               (rPhone && sMatch(rPhone, skip.row.mobile || skip.row.Cellular_Phone || skip.row['Contact Number'])) ||
-               (rName && sMatch(rName, skip.row.name || skip.row.Client_FullName || skip.row['Full Name']));
+        if (matchedInputRows.has(r)) return false;
+        return Object.values(r).some(val => {
+          if (!val) return false;
+          return Object.values(skip.row).some(skipVal => skipVal && sMatch(val, skipVal));
+        });
       });
       if (match) matchedInputRows.add(match);
     }
@@ -576,13 +575,13 @@ Ensure output is ONLY the raw JSON object. Do not include markdown wraps.
     // 2. Mark successful rows as matched
     for (const succ of result.successful) {
       const match = batch.find(r => {
-        const rEmail = r.First_Email || r.email || r['Mail Address'] || '';
-        const rPhone = r.Cellular_Phone || r.mobile || r['Contact Number'] || '';
-        const rName = r.Client_FullName || r.name || r['Full Name'] || '';
-
-        return (succ.email && sMatch(rEmail, succ.email)) ||
-               (succ.mobile_without_country_code && sMatch(rPhone, succ.mobile_without_country_code)) ||
-               (succ.name && sMatch(rName, succ.name));
+        if (matchedInputRows.has(r)) return false;
+        return Object.values(r).some(val => {
+          if (!val) return false;
+          return (succ.email && sMatch(val, succ.email)) ||
+                 (succ.mobile_without_country_code && sMatch(val, succ.mobile_without_country_code)) ||
+                 (succ.name && sMatch(val, succ.name));
+        });
       });
       if (match) matchedInputRows.add(match);
     }
