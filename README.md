@@ -40,7 +40,7 @@ An intelligent, high-performance, full-stack CSV importer designed for GrowEasy.
 - **Monorepo Structure**: Uses npm workspaces for running frontend and backend concurrently.
 
 ```text
-groweasy-crm-csv-importer/
+GrowEasy-AI-Powered-CSV-Importer/
 ├── apps/
 │   ├── frontend/     # Next.js SPA
 │   └── backend/      # Express REST API & AI Mapper Service
