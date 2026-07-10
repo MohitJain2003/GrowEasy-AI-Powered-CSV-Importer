@@ -6,9 +6,9 @@
     "apps/*"
   ],
   "scripts": {
-    "dev": "concurrently \"npm run dev --workspace=apps/frontend\" \"npm run dev --workspace=apps/backend\"",
+    "dev": "concurrently \"npm run dev -w frontend\" \"npm run dev -w backend\"",
     "build": "npm run build --workspaces",
-    "start": "concurrently \"npm run start --workspace=apps/frontend\" \"npm run start --workspace=apps/backend\""
+    "start": "concurrently \"npm run start -w frontend\" \"npm run start -w backend\""
   },
   "devDependencies": {
     "concurrently": "^8.2.2"

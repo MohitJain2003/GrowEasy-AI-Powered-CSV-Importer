@@ -249,6 +249,7 @@ export class AIService {
         return await this.mapWithGroq(batch, groqKey);
       } catch (err: any) {
         console.warn(`Groq failed for batch, trying next fallback. Error: ${err.message}`);
+        this.disabledProviders.add('groq'); // Disable for session immediately on first failure
       }
     }
 
@@ -258,6 +259,7 @@ export class AIService {
         return await this.mapWithSambaNova(batch, sambanovaKey);
       } catch (err: any) {
         console.warn(`SambaNova failed for batch, trying next fallback. Error: ${err.message}`);
+        this.disabledProviders.add('sambanova'); // Disable for session immediately on first failure
       }
     }
 
@@ -267,6 +269,7 @@ export class AIService {
         return await this.mapWithCerebras(batch, cerebrasKey);
       } catch (err: any) {
         console.warn(`Cerebras failed for batch, trying next fallback. Error: ${err.message}`);
+        this.disabledProviders.add('cerebras'); // Disable for session immediately on first failure
       }
     }
 
@@ -276,6 +279,7 @@ export class AIService {
         return await this.mapWithGemini(batch, geminiKey);
       } catch (err: any) {
         console.warn(`Gemini failed for batch, trying next fallback. Error: ${err.message}`);
+        this.disabledProviders.add('gemini'); // Disable for session immediately on first failure
       }
     }
 
@@ -294,10 +298,10 @@ export class AIService {
       try {
         console.log(`Attempting Gemini model: ${modelName}...`);
         const model = ai.getGenerativeModel({ model: modelName });
-        // Use a Promise.race to abort hanging Google GenAI calls after 4 seconds
+        // Use a Promise.race to abort hanging Google GenAI calls after 2.5 seconds
         const resultPromise = model.generateContent(prompt);
         const timeoutPromise = new Promise<never>((_, reject) =>
-          setTimeout(() => reject(new Error('Gemini request timed out')), 4000)
+          setTimeout(() => reject(new Error('Gemini request timed out')), 2500)
         );
         const result = await Promise.race([resultPromise, timeoutPromise]);
         
@@ -585,11 +589,11 @@ Ensure output is ONLY the raw JSON object. Do not include markdown wraps.
     }
   }
 
-  private static async fetchWithRetry(url: string, options: RequestInit, retries = 3, delay = 500): Promise<Response> {
+  private static async fetchWithRetry(url: string, options: RequestInit, retries = 1, delay = 300): Promise<Response> {
     for (let i = 0; i < retries; i++) {
       try {
         const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 4000);
+        const timeoutId = setTimeout(() => controller.abort(), 2500);
 
         const response = await fetch(url, {
           ...options,
@@ -607,7 +611,7 @@ Ensure output is ONLY the raw JSON object. Do not include markdown wraps.
         return response;
       } catch (err: any) {
         if (err.name === 'AbortError') {
-          console.warn(`Request to ${url} timed out (exceeded 4000ms).`);
+          console.warn(`Request to ${url} timed out (exceeded 2500ms).`);
         }
         if (i === retries - 1) throw err;
         const sleepTime = delay * Math.pow(2, i) + Math.random() * 200;
