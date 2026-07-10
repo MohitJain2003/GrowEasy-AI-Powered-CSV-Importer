@@ -98,7 +98,7 @@ export default function Dropzone({ onFileSelect, isLoading }: DropzoneProps) {
           <motion.div
             animate={isDragActive ? { scale: 1.1, rotate: 5 } : { scale: 1 }}
             className={`p-4 rounded-full ${
-              isDragActive ? 'bg-indigo-500/20 text-indigo-400' : 'bg-zinc-800/50 text-zinc-400'
+              isDragActive ? 'bg-indigo-500/20 text-indigo-400' : 'bg-zinc-200/50 dark:bg-zinc-800/50 text-zinc-650 dark:text-zinc-400'
             }`}
           >
             {selectedFile ? (
@@ -110,15 +110,15 @@ export default function Dropzone({ onFileSelect, isLoading }: DropzoneProps) {
 
           {selectedFile ? (
             <div className="space-y-1">
-              <p className="text-sm font-semibold text-zinc-200">{selectedFile.name}</p>
-              <p className="text-xs text-zinc-500">{(selectedFile.size / 1024).toFixed(1)} KB</p>
+              <p className="text-sm font-semibold text-zinc-800 dark:text-zinc-200">{selectedFile.name}</p>
+              <p className="text-xs text-zinc-500 dark:text-zinc-400">{(selectedFile.size / 1024).toFixed(1)} KB</p>
             </div>
           ) : (
             <div className="space-y-1">
-              <p className="text-base font-medium text-zinc-200">
+              <p className="text-base font-medium text-zinc-800 dark:text-zinc-200">
                 {isDragActive ? 'Drop your CSV file here' : 'Drop your CSV file here, or click to browse'}
               </p>
-              <p className="text-xs text-zinc-500">Supports .csv files up to 10MB</p>
+              <p className="text-xs text-zinc-500 dark:text-zinc-400">Supports .csv files up to 10MB</p>
             </div>
           )}
         </div>
@@ -130,7 +130,7 @@ export default function Dropzone({ onFileSelect, isLoading }: DropzoneProps) {
               e.stopPropagation();
               clearSelection();
             }}
-            className="absolute top-4 right-4 p-1.5 rounded-full bg-zinc-800/80 hover:bg-zinc-700 text-zinc-400 hover:text-zinc-200 transition-colors"
+            className="absolute top-4 right-4 p-1.5 rounded-full bg-zinc-200 dark:bg-zinc-800/80 hover:bg-zinc-300 dark:hover:bg-zinc-700 text-zinc-600 dark:text-zinc-400 hover:text-zinc-800 dark:hover:text-zinc-200 transition-colors"
           >
             <X className="w-4 h-4" />
           </button>

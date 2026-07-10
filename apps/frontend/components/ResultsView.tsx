@@ -97,7 +97,7 @@ export default function ResultsView({ result, onReset }: ResultsViewProps) {
       <div className="flex items-center justify-between">
         <button
           onClick={onReset}
-          className="flex items-center space-x-1.5 text-xs text-zinc-400 hover:text-zinc-200 transition-colors"
+          className="flex items-center space-x-1.5 text-xs text-zinc-500 hover:text-zinc-800 dark:text-zinc-400 dark:hover:text-white transition-colors"
         >
           <ArrowLeft className="w-4 h-4" />
           <span>Upload Another File</span>
@@ -106,23 +106,22 @@ export default function ResultsView({ result, onReset }: ResultsViewProps) {
           <button
             onClick={() => handleExport('csv')}
             disabled={successRecords.length === 0}
-            className="flex items-center space-x-1.5 px-3 py-1.5 rounded-lg bg-zinc-900 border border-zinc-850 hover:bg-zinc-850 disabled:opacity-40 disabled:cursor-not-allowed text-xs text-zinc-200 transition-all animate-fade-in"
+            className="flex items-center space-x-1.5 px-3 py-1.5 rounded-lg bg-white dark:bg-zinc-900 border border-border dark:border-zinc-850 hover:bg-zinc-100 dark:hover:bg-zinc-850 disabled:opacity-40 disabled:cursor-not-allowed text-xs text-zinc-700 dark:text-zinc-200 transition-all animate-fade-in"
           >
-            <FileDown className="w-4 h-4 text-emerald-400" />
+            <FileDown className="w-4 h-4 text-emerald-500 dark:text-emerald-400" />
             <span>Export CSV</span>
           </button>
           <button
             onClick={() => handleExport('json')}
             disabled={successRecords.length === 0}
-            className="flex items-center space-x-1.5 px-3 py-1.5 rounded-lg bg-zinc-900 border border-zinc-850 hover:bg-zinc-850 disabled:opacity-40 disabled:cursor-not-allowed text-xs text-zinc-200 transition-all animate-fade-in"
+            className="flex items-center space-x-1.5 px-3 py-1.5 rounded-lg bg-white dark:bg-zinc-900 border border-border dark:border-zinc-850 hover:bg-zinc-100 dark:hover:bg-zinc-850 disabled:opacity-40 disabled:cursor-not-allowed text-xs text-zinc-700 dark:text-zinc-200 transition-all animate-fade-in"
           >
-            <FileDown className="w-4 h-4 text-indigo-400" />
+            <FileDown className="w-4 h-4 text-indigo-500 dark:text-indigo-400" />
             <span>Export JSON</span>
           </button>
         </div>
       </div>
 
-      {/* Metrics Bento Grid */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <motion.div
           initial={{ scale: 0.95, opacity: 0 }}
@@ -130,9 +129,9 @@ export default function ResultsView({ result, onReset }: ResultsViewProps) {
           transition={{ delay: 0.05 }}
           className="p-5 rounded-2xl glass-panel text-left space-y-1"
         >
-          <div className="text-xs font-medium text-zinc-500 uppercase tracking-wider">Total Imported</div>
-          <div className="text-3xl font-bold text-zinc-100">{totalImported}</div>
-          <div className="text-[10px] text-zinc-500">Successfully mapped leads</div>
+          <div className="text-xs font-medium text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">Total Imported</div>
+          <div className="text-3xl font-bold text-zinc-800 dark:text-zinc-100">{totalImported}</div>
+          <div className="text-[10px] text-zinc-500 dark:text-zinc-400">Successfully mapped leads</div>
         </motion.div>
 
         <motion.div
@@ -141,9 +140,9 @@ export default function ResultsView({ result, onReset }: ResultsViewProps) {
           transition={{ delay: 0.1 }}
           className="p-5 rounded-2xl glass-panel text-left space-y-1"
         >
-          <div className="text-xs font-medium text-zinc-500 uppercase tracking-wider">Total Skipped</div>
-          <div className="text-3xl font-bold text-red-400">{totalSkipped}</div>
-          <div className="text-[10px] text-zinc-500">No email or mobile found</div>
+          <div className="text-xs font-medium text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">Total Skipped</div>
+          <div className="text-3xl font-bold text-red-500 dark:text-red-400">{totalSkipped}</div>
+          <div className="text-[10px] text-zinc-500 dark:text-zinc-400">No email or mobile found</div>
         </motion.div>
 
         <motion.div
@@ -152,9 +151,9 @@ export default function ResultsView({ result, onReset }: ResultsViewProps) {
           transition={{ delay: 0.15 }}
           className="p-5 rounded-2xl glass-panel text-left space-y-1"
         >
-          <div className="text-xs font-medium text-zinc-500 uppercase tracking-wider">Completeness</div>
-          <div className="text-3xl font-bold text-indigo-400">{completenessScore}%</div>
-          <div className="text-[10px] text-zinc-500">Field population density</div>
+          <div className="text-xs font-medium text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">Completeness</div>
+          <div className="text-3xl font-bold text-indigo-600 dark:text-indigo-400">{completenessScore}%</div>
+          <div className="text-[10px] text-zinc-500 dark:text-zinc-400">Field population density</div>
         </motion.div>
 
         <motion.div
@@ -163,20 +162,19 @@ export default function ResultsView({ result, onReset }: ResultsViewProps) {
           transition={{ delay: 0.2 }}
           className="p-5 rounded-2xl glass-panel text-left space-y-1"
         >
-          <div className="text-xs font-medium text-zinc-500 uppercase tracking-wider">Processing Time</div>
-          <div className="text-3xl font-bold text-emerald-400">{processingTimeSec}s</div>
-          <div className="text-[10px] text-zinc-500">Fast streaming parser & AI</div>
+          <div className="text-xs font-medium text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">Processing Time</div>
+          <div className="text-3xl font-bold text-emerald-600 dark:text-emerald-400">{processingTimeSec}s</div>
+          <div className="text-[10px] text-zinc-500 dark:text-zinc-400">Fast streaming parser & AI</div>
         </motion.div>
       </div>
 
-      {/* Tabs Menu */}
-      <div className="flex border-b border-zinc-800">
+      <div className="flex border-b border-border">
         <button
           onClick={() => setActiveTab('success')}
           className={`px-4 py-2.5 text-sm font-medium border-b-2 transition-all flex items-center space-x-2 ${
             activeTab === 'success'
-              ? 'border-indigo-500 text-indigo-400'
-              : 'border-transparent text-zinc-400 hover:text-zinc-200'
+              ? 'border-indigo-500 text-indigo-650 dark:text-indigo-400'
+              : 'border-transparent text-zinc-500 hover:text-zinc-800 dark:text-zinc-400 dark:hover:text-zinc-205 dark:hover:text-white'
           }`}
         >
           <CheckCircle2 className="w-4 h-4 text-emerald-400" />
@@ -198,38 +196,38 @@ export default function ResultsView({ result, onReset }: ResultsViewProps) {
       {/* Content Grid */}
       <div>
         {activeTab === 'success' && (
-          <div className="overflow-x-auto rounded-xl border border-zinc-800 bg-zinc-950/40">
+          <div className="overflow-x-auto rounded-xl border border-border bg-card/20 backdrop-blur-md">
             {successRecords.length === 0 ? (
               <div className="py-12 text-center text-sm text-zinc-500">No records successfully imported.</div>
             ) : (
               <table className="w-full text-left border-collapse text-xs">
-                <thead className="bg-zinc-900/60 border-b border-zinc-800">
+                <thead className="bg-zinc-100/90 dark:bg-zinc-900/60 border-b border-border">
                   <tr>
-                    <th className="px-4 py-3 font-semibold text-zinc-400">Created At</th>
-                    <th className="px-4 py-3 font-semibold text-zinc-400">Name</th>
-                    <th className="px-4 py-3 font-semibold text-zinc-400">Contact Details</th>
-                    <th className="px-4 py-3 font-semibold text-zinc-400">Company</th>
-                    <th className="px-4 py-3 font-semibold text-zinc-400">Location</th>
-                    <th className="px-4 py-3 font-semibold text-zinc-400">Status</th>
-                    <th className="px-4 py-3 font-semibold text-zinc-400">Source</th>
-                    <th className="px-4 py-3 font-semibold text-zinc-400">Note</th>
-                    <th className="px-4 py-3 font-semibold text-zinc-400 text-center">Actions</th>
+                    <th className="px-4 py-3 font-semibold text-zinc-650 dark:text-zinc-400">Created At</th>
+                    <th className="px-4 py-3 font-semibold text-zinc-655 dark:text-zinc-400">Name</th>
+                    <th className="px-4 py-3 font-semibold text-zinc-655 dark:text-zinc-400">Contact Details</th>
+                    <th className="px-4 py-3 font-semibold text-zinc-655 dark:text-zinc-400">Company</th>
+                    <th className="px-4 py-3 font-semibold text-zinc-655 dark:text-zinc-400">Location</th>
+                    <th className="px-4 py-3 font-semibold text-zinc-655 dark:text-zinc-400">Status</th>
+                    <th className="px-4 py-3 font-semibold text-zinc-655 dark:text-zinc-400">Source</th>
+                    <th className="px-4 py-3 font-semibold text-zinc-655 dark:text-zinc-400">Note</th>
+                    <th className="px-4 py-3 font-semibold text-zinc-655 dark:text-zinc-400 text-center">Actions</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-zinc-900">
+                <tbody className="divide-y divide-border">
                   {successRecords.map((rec, idx) => {
                     const isEditing = editingId === idx;
                     return (
-                      <tr key={idx} className="hover:bg-zinc-900/20 transition-all">
+                      <tr key={idx} className="hover:bg-zinc-100/40 dark:hover:bg-zinc-900/20 transition-all">
                         {/* Created At */}
-                        <td className="px-4 py-2.5 text-zinc-300">
+                        <td className="px-4 py-2.5 text-zinc-700 dark:text-zinc-300">
                           {isEditing ? (
                             <input
                               type="text"
                               name="created_at"
                               value={editFormData.created_at || ''}
                               onChange={handleEditChange}
-                              className="w-full bg-zinc-800 border border-zinc-700 rounded px-1.5 py-0.5 text-zinc-100"
+                              className="w-full bg-white dark:bg-zinc-800 border border-border dark:border-zinc-700 rounded px-1.5 py-0.5 text-zinc-900 dark:text-zinc-100"
                             />
                           ) : (
                             new Date(rec.created_at).toLocaleDateString()
@@ -237,14 +235,14 @@ export default function ResultsView({ result, onReset }: ResultsViewProps) {
                         </td>
 
                         {/* Name */}
-                        <td className="px-4 py-2.5 font-semibold text-zinc-100">
+                        <td className="px-4 py-2.5 font-semibold text-zinc-900 dark:text-zinc-100">
                           {isEditing ? (
                             <input
                               type="text"
                               name="name"
                               value={editFormData.name || ''}
                               onChange={handleEditChange}
-                              className="w-full bg-zinc-800 border border-zinc-700 rounded px-1.5 py-0.5 text-zinc-100"
+                              className="w-full bg-white dark:bg-zinc-800 border border-border dark:border-zinc-700 rounded px-1.5 py-0.5 text-zinc-900 dark:text-zinc-100"
                             />
                           ) : (
                             rec.name
@@ -252,7 +250,7 @@ export default function ResultsView({ result, onReset }: ResultsViewProps) {
                         </td>
 
                         {/* Contact Details */}
-                        <td className="px-4 py-2.5 text-zinc-300 space-y-0.5">
+                        <td className="px-4 py-2.5 text-zinc-700 dark:text-zinc-300 space-y-0.5">
                           {isEditing ? (
                             <div className="space-y-1">
                               <input
@@ -260,7 +258,7 @@ export default function ResultsView({ result, onReset }: ResultsViewProps) {
                                 name="email"
                                 value={editFormData.email || ''}
                                 onChange={handleEditChange}
-                                className="w-full bg-zinc-800 border border-zinc-700 rounded px-1.5 py-0.5 text-zinc-100 placeholder-zinc-500"
+                                className="w-full bg-white dark:bg-zinc-800 border border-border dark:border-zinc-700 rounded px-1.5 py-0.5 text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 dark:placeholder-zinc-500"
                                 placeholder="Email"
                               />
                               <div className="flex space-x-1">
@@ -269,7 +267,7 @@ export default function ResultsView({ result, onReset }: ResultsViewProps) {
                                   name="country_code"
                                   value={editFormData.country_code || ''}
                                   onChange={handleEditChange}
-                                  className="w-12 bg-zinc-800 border border-zinc-700 rounded px-1.5 py-0.5 text-zinc-100 placeholder-zinc-500 text-center"
+                                  className="w-12 bg-white dark:bg-zinc-800 border border-border dark:border-zinc-700 rounded px-1.5 py-0.5 text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 dark:placeholder-zinc-500 text-center"
                                   placeholder="+91"
                                 />
                                 <input
@@ -277,16 +275,16 @@ export default function ResultsView({ result, onReset }: ResultsViewProps) {
                                   name="mobile_without_country_code"
                                   value={editFormData.mobile_without_country_code || ''}
                                   onChange={handleEditChange}
-                                  className="flex-1 bg-zinc-800 border border-zinc-700 rounded px-1.5 py-0.5 text-zinc-100 placeholder-zinc-500"
+                                  className="flex-1 bg-white dark:bg-zinc-800 border border-border dark:border-zinc-700 rounded px-1.5 py-0.5 text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 dark:placeholder-zinc-500"
                                   placeholder="Mobile"
                                 />
                               </div>
                             </div>
                           ) : (
                             <>
-                              {rec.email && <div className="text-zinc-200">{rec.email}</div>}
+                              {rec.email && <div className="text-zinc-800 dark:text-zinc-200">{rec.email}</div>}
                               {rec.mobile_without_country_code && (
-                                <div className="text-zinc-400 font-mono">
+                                <div className="text-zinc-500 dark:text-zinc-400 font-mono">
                                   {rec.country_code} {rec.mobile_without_country_code}
                                 </div>
                               )}
@@ -295,22 +293,22 @@ export default function ResultsView({ result, onReset }: ResultsViewProps) {
                         </td>
 
                         {/* Company */}
-                        <td className="px-4 py-2.5 text-zinc-300">
+                        <td className="px-4 py-2.5 text-zinc-700 dark:text-zinc-300">
                           {isEditing ? (
                             <input
                               type="text"
                               name="company"
                               value={editFormData.company || ''}
                               onChange={handleEditChange}
-                              className="w-full bg-zinc-800 border border-zinc-700 rounded px-1.5 py-0.5 text-zinc-100"
+                              className="w-full bg-white dark:bg-zinc-800 border border-border dark:border-zinc-700 rounded px-1.5 py-0.5 text-zinc-900 dark:text-zinc-100"
                             />
                           ) : (
-                            rec.company || <span className="text-zinc-600">-</span>
+                            rec.company || <span className="text-zinc-400 dark:text-zinc-600">-</span>
                           )}
                         </td>
 
                         {/* Location */}
-                        <td className="px-4 py-2.5 text-zinc-300">
+                        <td className="px-4 py-2.5 text-zinc-700 dark:text-zinc-300">
                           {isEditing ? (
                             <div className="space-y-1">
                               <input
@@ -318,7 +316,7 @@ export default function ResultsView({ result, onReset }: ResultsViewProps) {
                                 name="city"
                                 value={editFormData.city || ''}
                                 onChange={handleEditChange}
-                                className="w-full bg-zinc-800 border border-zinc-700 rounded px-1.5 py-0.5 text-zinc-100"
+                                className="w-full bg-white dark:bg-zinc-800 border border-border dark:border-zinc-700 rounded px-1.5 py-0.5 text-zinc-900 dark:text-zinc-100"
                                 placeholder="City"
                               />
                               <input
@@ -326,7 +324,7 @@ export default function ResultsView({ result, onReset }: ResultsViewProps) {
                                 name="country"
                                 value={editFormData.country || ''}
                                 onChange={handleEditChange}
-                                className="w-full bg-zinc-800 border border-zinc-700 rounded px-1.5 py-0.5 text-zinc-100"
+                                className="w-full bg-white dark:bg-zinc-800 border border-border dark:border-zinc-700 rounded px-1.5 py-0.5 text-zinc-900 dark:text-zinc-100"
                                 placeholder="Country"
                               />
                             </div>
@@ -334,7 +332,7 @@ export default function ResultsView({ result, onReset }: ResultsViewProps) {
                             <span>
                               {rec.city || rec.state || rec.country
                                 ? [rec.city, rec.state, rec.country].filter(Boolean).join(', ')
-                                : <span className="text-zinc-600">-</span>}
+                                : <span className="text-zinc-400 dark:text-zinc-600">-</span>}
                             </span>
                           )}
                         </td>
@@ -346,7 +344,7 @@ export default function ResultsView({ result, onReset }: ResultsViewProps) {
                               name="crm_status"
                               value={editFormData.crm_status}
                               onChange={handleEditChange}
-                              className="bg-zinc-800 border border-zinc-700 rounded px-1 py-0.5 text-zinc-100"
+                              className="bg-white dark:bg-zinc-800 border border-border dark:border-zinc-700 rounded px-1 py-0.5 text-zinc-900 dark:text-zinc-100"
                             >
                               <option value="GOOD_LEAD_FOLLOW_UP">GOOD_LEAD_FOLLOW_UP</option>
                               <option value="DID_NOT_CONNECT">DID_NOT_CONNECT</option>
@@ -357,12 +355,12 @@ export default function ResultsView({ result, onReset }: ResultsViewProps) {
                             <span
                               className={`px-2 py-0.5 rounded-full text-[10px] font-semibold tracking-wide uppercase ${
                                 rec.crm_status === 'GOOD_LEAD_FOLLOW_UP'
-                                  ? 'bg-emerald-500/10 text-emerald-400'
+                                  ? 'bg-emerald-500/10 text-emerald-650 dark:text-emerald-400'
                                   : rec.crm_status === 'SALE_DONE'
-                                  ? 'bg-indigo-500/10 text-indigo-400'
+                                  ? 'bg-indigo-500/10 text-indigo-650 dark:text-indigo-400'
                                   : rec.crm_status === 'DID_NOT_CONNECT'
-                                  ? 'bg-amber-500/10 text-amber-400'
-                                  : 'bg-red-500/10 text-red-400'
+                                  ? 'bg-amber-500/10 text-amber-650 dark:text-amber-400'
+                                  : 'bg-red-500/10 text-red-650 dark:text-red-400'
                               }`}
                             >
                               {rec.crm_status.replace(/_/g, ' ')}
@@ -371,13 +369,13 @@ export default function ResultsView({ result, onReset }: ResultsViewProps) {
                         </td>
 
                         {/* Source */}
-                        <td className="px-4 py-2.5 text-zinc-400 font-mono">
+                        <td className="px-4 py-2.5 text-zinc-550 dark:text-zinc-400 font-mono">
                           {isEditing ? (
                             <select
                               name="data_source"
                               value={editFormData.data_source || ''}
                               onChange={handleEditChange}
-                              className="bg-zinc-800 border border-zinc-700 rounded px-1 py-0.5 text-zinc-100"
+                              className="bg-white dark:bg-zinc-800 border border-border dark:border-zinc-700 rounded px-1 py-0.5 text-zinc-900 dark:text-zinc-100"
                             >
                               <option value="">(None)</option>
                               <option value="leads_on_demand">leads_on_demand</option>
@@ -387,23 +385,23 @@ export default function ResultsView({ result, onReset }: ResultsViewProps) {
                               <option value="sarjapur_plots">sarjapur_plots</option>
                             </select>
                           ) : (
-                            rec.data_source || <span className="text-zinc-600">-</span>
+                            rec.data_source || <span className="text-zinc-400 dark:text-zinc-600">-</span>
                           )}
                         </td>
 
                         {/* Note */}
-                        <td className="px-4 py-2.5 text-zinc-400 max-w-xs" title={rec.crm_note}>
+                        <td className="px-4 py-2.5 text-zinc-500 dark:text-zinc-400 max-w-xs" title={rec.crm_note}>
                           {isEditing ? (
                             <input
                               type="text"
                               name="crm_note"
                               value={editFormData.crm_note || ''}
                               onChange={handleEditChange}
-                              className="w-full bg-zinc-800 border border-zinc-700 rounded px-1.5 py-0.5 text-zinc-100"
+                              className="w-full bg-white dark:bg-zinc-800 border border-border dark:border-zinc-700 rounded px-1.5 py-0.5 text-zinc-900 dark:text-zinc-100"
                             />
                           ) : (
                             <div className="break-words whitespace-normal line-clamp-2 hover:line-clamp-none transition-all duration-200 cursor-pointer leading-relaxed">
-                              {rec.crm_note || <span className="text-zinc-600">-</span>}
+                              {rec.crm_note || <span className="text-zinc-400 dark:text-zinc-600">-</span>}
                             </div>
                           )}
                         </td>
@@ -415,13 +413,13 @@ export default function ResultsView({ result, onReset }: ResultsViewProps) {
                               <>
                                 <button
                                   onClick={() => saveEdit(idx)}
-                                  className="text-xs font-semibold text-indigo-400 hover:text-indigo-300"
+                                  className="text-xs font-semibold text-indigo-500 dark:text-indigo-400 hover:text-indigo-650 dark:hover:text-indigo-300"
                                 >
                                   Save
                                 </button>
                                 <button
                                   onClick={() => setEditingId(null)}
-                                  className="text-xs text-zinc-500 hover:text-zinc-300"
+                                  className="text-xs text-zinc-500 hover:text-zinc-800 dark:text-zinc-550 dark:hover:text-zinc-300"
                                 >
                                   Cancel
                                 </button>
@@ -430,14 +428,14 @@ export default function ResultsView({ result, onReset }: ResultsViewProps) {
                               <>
                                 <button
                                   onClick={() => startEdit(idx, rec)}
-                                  className="p-1 rounded bg-zinc-900 border border-zinc-850 hover:bg-zinc-800 text-zinc-400 hover:text-zinc-200 transition-colors"
+                                  className="p-1 rounded bg-white dark:bg-zinc-900 border border-border dark:border-zinc-850 hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-500 dark:text-zinc-400 hover:text-zinc-800 dark:hover:text-zinc-200 transition-colors"
                                   title="Edit Record"
                                 >
                                   <Edit3 className="w-3.5 h-3.5" />
                                 </button>
                                 <button
                                   onClick={() => deleteRecord(idx)}
-                                  className="p-1 rounded bg-zinc-900 border border-zinc-850 hover:bg-zinc-800 text-red-500 hover:text-red-400 hover:bg-red-500/10 transition-colors"
+                                  className="p-1 rounded bg-white dark:bg-zinc-900 border border-border dark:border-zinc-850 hover:bg-red-50 dark:hover:bg-zinc-800 text-red-500 dark:text-red-400 hover:text-red-600 hover:bg-red-500/10 transition-colors"
                                   title="Delete Record"
                                 >
                                   <Trash2 className="w-3.5 h-3.5" />
@@ -456,27 +454,27 @@ export default function ResultsView({ result, onReset }: ResultsViewProps) {
         )}
 
         {activeTab === 'skipped' && (
-          <div className="overflow-x-auto rounded-xl border border-zinc-800 bg-zinc-950/40">
+          <div className="overflow-x-auto rounded-xl border border-border bg-card/20 backdrop-blur-md">
             {result.skipped.length === 0 ? (
               <div className="py-12 text-center text-sm text-zinc-500">No records were skipped! Clean import.</div>
             ) : (
               <table className="w-full text-left border-collapse text-xs">
-                <thead className="bg-zinc-900/60 border-b border-zinc-800">
+                <thead className="bg-zinc-100/90 dark:bg-zinc-900/60 border-b border-border">
                   <tr>
-                    <th className="px-4 py-3 font-semibold text-zinc-400">Index</th>
-                    <th className="px-4 py-3 font-semibold text-zinc-455 text-red-400">Reason for Skip</th>
-                    <th className="px-4 py-3 font-semibold text-zinc-400">Original Row Data</th>
+                    <th className="px-4 py-3 font-semibold text-zinc-600 dark:text-zinc-400">Index</th>
+                    <th className="px-4 py-3 font-semibold text-red-500 dark:text-red-400">Reason for Skip</th>
+                    <th className="px-4 py-3 font-semibold text-zinc-600 dark:text-zinc-400">Original Row Data</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-zinc-900">
+                <tbody className="divide-y divide-border">
                   {result.skipped.map((skip, idx) => (
-                    <tr key={idx} className="hover:bg-zinc-900/10 transition-all">
-                      <td className="px-4 py-2.5 text-zinc-500 font-mono">#{idx + 1}</td>
-                      <td className="px-4 py-2.5 font-medium text-red-400 flex items-center space-x-1.5">
+                    <tr key={idx} className="hover:bg-zinc-100/40 dark:hover:bg-zinc-900/10 transition-all">
+                      <td className="px-4 py-2.5 text-zinc-500 dark:text-zinc-400 font-mono">#{idx + 1}</td>
+                      <td className="px-4 py-2.5 font-medium text-red-500 dark:text-red-400 flex items-center space-x-1.5">
                         <AlertCircle className="w-3.5 h-3.5" />
                         <span>{skip.reason}</span>
                       </td>
-                      <td className="px-4 py-2.5 text-zinc-400 max-w-lg font-mono text-[10px] break-all">
+                      <td className="px-4 py-2.5 text-zinc-600 dark:text-zinc-400 max-w-lg font-mono text-[10px] break-all">
                         {JSON.stringify(skip.row)}
                       </td>
                     </tr>
