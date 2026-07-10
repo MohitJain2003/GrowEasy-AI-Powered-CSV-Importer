@@ -45,7 +45,7 @@ function NoteCell({ note }: { note: string }) {
     <div
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
-      className={`break-words whitespace-normal leading-relaxed cursor-help transition-all duration-300 ${
+      className={`break-words whitespace-normal leading-relaxed cursor-default transition-all duration-300 ${
         isExpanded ? 'line-clamp-none' : 'line-clamp-2'
       }`}
     >
