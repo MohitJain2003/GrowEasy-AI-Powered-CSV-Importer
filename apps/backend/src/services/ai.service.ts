@@ -497,7 +497,7 @@ Each record should match this JSON format:
    (leave empty string if none match confidently)
 3. If multiple emails exist: use the first email, and append remaining emails into "crm_note".
 4. If multiple mobile numbers exist: use the first mobile, and append remaining mobile numbers into "crm_note".
-5. If a record contains NEITHER email NOR mobile number, you MUST SKIP IT (indicate the skip in your response).
+5. If a record contains NEITHER email NOR mobile number (i.e., BOTH are missing), you MUST SKIP IT. If a record has at least one of these (e.g., email is present but mobile is missing, or mobile is present but email is missing), you MUST process it as successful; do NOT skip it.
 
 ### Input CSV Rows to Map:
 ${JSON.stringify(rows, null, 2)}
