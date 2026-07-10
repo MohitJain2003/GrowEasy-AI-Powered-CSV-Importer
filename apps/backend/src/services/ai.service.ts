@@ -555,35 +555,87 @@ Ensure output is ONLY the raw JSON object. Do not include markdown wraps.
   private static reconcileBatch(batch: CSVRow[], result: { successful: CRMRecord[]; skipped: { row: CSVRow; reason: string }[] }): { successful: CRMRecord[]; skipped: { row: CSVRow; reason: string }[] } {
     const finalSuccessful = [...result.successful];
     const finalSkipped = [...result.skipped];
-
-    // Keep track of which input rows were successfully matched
     const matchedInputRows = new Set<CSVRow>();
 
-    // 1. Mark skipped rows as matched
+    const sMatch = (a: any, b: any): boolean => {
+      if (!a || !b) return false;
+      const sa = String(a).toLowerCase().replace(/[^a-z0-9]/g, '');
+      const sb = String(b).toLowerCase().replace(/[^a-z0-9]/g, '');
+      return sa === sb || sa.includes(sb) || sb.includes(sa);
+    };
+
+    // Helper to match skipped rows back to the original CSVRow object
+    const findSkippedMatch = (skipRow: any): CSVRow | undefined => {
+      if (!skipRow) return undefined;
+      // First, try reference equality in case it came from heuristics
+      if (batch.includes(skipRow) && !matchedInputRows.has(skipRow)) {
+        return skipRow;
+      }
+      // Otherwise, match by field similarity
+      let bestMatch: CSVRow | undefined = undefined;
+      let maxMatchCount = -1;
+      for (const row of batch) {
+        if (matchedInputRows.has(row)) continue;
+        let matchCount = 0;
+        for (const [k, v] of Object.entries(skipRow)) {
+          if (v === undefined || v === null || v === '') continue;
+          if (String(row[k] || '').toLowerCase() === String(v).toLowerCase()) {
+            matchCount++;
+          }
+        }
+        if (matchCount > maxMatchCount && matchCount > 0) {
+          maxMatchCount = matchCount;
+          bestMatch = row;
+        }
+      }
+      return bestMatch;
+    };
+
+    // Helper to match successful CRM records back to original CSVRow object
+    const findSuccessMatch = (succ: CRMRecord): CSVRow | undefined => {
+      let bestMatch: CSVRow | undefined = undefined;
+      let maxScore = -1;
+      for (const row of batch) {
+        if (matchedInputRows.has(row)) continue;
+        let score = 0;
+        const values = Object.values(row).map(v => String(v || '').toLowerCase().replace(/[^a-z0-9]/g, ''));
+        
+        const cleanEmail = succ.email?.toLowerCase().replace(/[^a-z0-9]/g, '');
+        const cleanMobile = succ.mobile_without_country_code?.toLowerCase().replace(/[^a-z0-9]/g, '');
+        const cleanName = succ.name?.toLowerCase().replace(/[^a-z0-9]/g, '');
+
+        if (cleanEmail && values.some(v => v.includes(cleanEmail) || cleanEmail.includes(v))) {
+          score += 10;
+        }
+        if (cleanMobile && values.some(v => v.includes(cleanMobile) || cleanMobile.includes(v))) {
+          score += 10;
+        }
+        if (cleanName && values.some(v => v.includes(cleanName) || cleanName.includes(v))) {
+          score += 5;
+        }
+
+        if (score > maxScore && score > 0) {
+          maxScore = score;
+          bestMatch = row;
+        }
+      }
+      return bestMatch;
+    };
+
+    // 1. Match skipped records
     for (const skip of result.skipped) {
-      if (!skip.row) continue;
-      const match = batch.find(r => {
-        if (matchedInputRows.has(r)) return false;
-        return Object.values(r).some(val => {
-          if (!val) return false;
-          return Object.values(skip.row).some(skipVal => skipVal && sMatch(val, skipVal));
-        });
-      });
-      if (match) matchedInputRows.add(match);
+      const match = findSkippedMatch(skip.row);
+      if (match) {
+        matchedInputRows.add(match);
+      }
     }
 
-    // 2. Mark successful rows as matched
+    // 2. Match successful records
     for (const succ of result.successful) {
-      const match = batch.find(r => {
-        if (matchedInputRows.has(r)) return false;
-        return Object.values(r).some(val => {
-          if (!val) return false;
-          return (succ.email && sMatch(val, succ.email)) ||
-                 (succ.mobile_without_country_code && sMatch(val, succ.mobile_without_country_code)) ||
-                 (succ.name && sMatch(val, succ.name));
-        });
-      });
-      if (match) matchedInputRows.add(match);
+      const match = findSuccessMatch(succ);
+      if (match) {
+        matchedInputRows.add(match);
+      }
     }
 
     // 3. Any row in the batch that is NOT matched is missing!
@@ -597,13 +649,6 @@ Ensure output is ONLY the raw JSON object. Do not include markdown wraps.
     }
 
     return { successful: finalSuccessful, skipped: finalSkipped };
-
-    function sMatch(a: any, b: any): boolean {
-      if (!a || !b) return false;
-      const sa = String(a).toLowerCase().replace(/[^a-z0-9]/g, '');
-      const sb = String(b).toLowerCase().replace(/[^a-z0-9]/g, '');
-      return sa === sb || sa.includes(sb) || sb.includes(sa);
-    }
   }
 
   private static async fetchWithRetry(url: string, options: RequestInit, retries = 1, delay = 300): Promise<Response> {
