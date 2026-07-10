@@ -18,6 +18,13 @@ export default function PreviewTable({ rows }: PreviewTableProps) {
     return Object.keys(rows[0]);
   }, [rows]);
 
+  const totalPages = Math.ceil(rows.length / rowsPerPage);
+
+  const paginatedRows = useMemo(() => {
+    const startIndex = (currentPage - 1) * rowsPerPage;
+    return rows.slice(startIndex, startIndex + rowsPerPage);
+  }, [rows, currentPage]);
+
   if (rows.length === 0) return null;
 
   return (
@@ -32,7 +39,7 @@ export default function PreviewTable({ rows }: PreviewTableProps) {
           <h2 className="text-base font-semibold text-zinc-800 dark:text-zinc-100">Parsed CSV Data Preview</h2>
         </div>
         <div className="text-xs text-zinc-500 dark:text-zinc-400 font-medium">
-          Total: {rows.length} rows parsed (scroll to view all)
+          Showing {Math.min(rows.length, (currentPage - 1) * rowsPerPage + 1)}-{Math.min(rows.length, currentPage * rowsPerPage)} of {rows.length} rows parsed
         </div>
       </div>
 
@@ -47,13 +54,13 @@ export default function PreviewTable({ rows }: PreviewTableProps) {
                      key={header}
                      className="px-4 py-3 text-xs font-semibold text-zinc-600 dark:text-zinc-400 uppercase tracking-wider whitespace-nowrap"
                   >
-                    {header}
+                     {header}
                   </th>
                 ))}
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
-              {rows.map((row, idx) => (
+              {paginatedRows.map((row, idx) => (
                 <tr
                    key={idx}
                    className="hover:bg-zinc-100/50 dark:hover:bg-zinc-800/20 transition-colors"
@@ -73,6 +80,33 @@ export default function PreviewTable({ rows }: PreviewTableProps) {
           </table>
         </div>
       </div>
+
+      {/* Pagination Controls */}
+      {totalPages > 1 && (
+        <div className="flex items-center justify-between p-4 rounded-xl border border-border bg-card/10 backdrop-blur-sm">
+          <button
+            onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+            disabled={currentPage === 1}
+            className="flex items-center space-x-1 px-3 py-1.5 rounded-lg border border-border bg-white/5 text-xs font-medium text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 hover:dark:text-zinc-200 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
+          >
+            <ChevronLeft className="w-4 h-4" />
+            <span>Previous</span>
+          </button>
+          
+          <span className="text-xs text-zinc-500 dark:text-zinc-400 font-medium">
+            Page {currentPage} of {totalPages}
+          </span>
+
+          <button
+            onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+            disabled={currentPage === totalPages}
+            className="flex items-center space-x-1 px-3 py-1.5 rounded-lg border border-border bg-white/5 text-xs font-medium text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 hover:dark:text-zinc-200 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
+          >
+            <span>Next</span>
+            <ChevronRight className="w-4 h-4" />
+          </button>
+        </div>
+      )}
     </motion.div>
   );
 }

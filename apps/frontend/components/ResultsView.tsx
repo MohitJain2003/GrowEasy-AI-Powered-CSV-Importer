@@ -2,7 +2,7 @@
 
 import React, { useState, useMemo } from 'react';
 import { motion } from 'framer-motion';
-import { CheckCircle2, AlertCircle, FileDown, Edit3, Trash2, ArrowLeft } from 'lucide-react';
+import { CheckCircle2, AlertCircle, FileDown, Edit3, Trash2, ArrowLeft, ChevronLeft, ChevronRight } from 'lucide-react';
 import { CRMRecord, ProcessingResult } from '../lib/api';
 
 interface ResultsViewProps {
@@ -59,6 +59,23 @@ export default function ResultsView({ result, onReset }: ResultsViewProps) {
   const [successRecords, setSuccessRecords] = useState<CRMRecord[]>(result.successful);
   const [editingId, setEditingId] = useState<number | null>(null);
   const [editFormData, setEditFormData] = useState<Partial<CRMRecord>>({});
+
+  const [successPage, setSuccessPage] = useState(1);
+  const [skippedPage, setSkippedPage] = useState(1);
+  const rowsPerPage = 10;
+
+  const totalSuccessPages = Math.ceil(successRecords.length / rowsPerPage);
+  const totalSkippedPages = Math.ceil(result.skipped.length / rowsPerPage);
+
+  const paginatedSuccess = useMemo(() => {
+    const start = (successPage - 1) * rowsPerPage;
+    return successRecords.slice(start, start + rowsPerPage);
+  }, [successRecords, successPage]);
+
+  const paginatedSkipped = useMemo(() => {
+    const start = (skippedPage - 1) * rowsPerPage;
+    return result.skipped.slice(start, start + rowsPerPage);
+  }, [result.skipped, skippedPage]);
 
   const totalImported = successRecords.length;
   const totalSkipped = result.skipped.length;
@@ -259,10 +276,11 @@ export default function ResultsView({ result, onReset }: ResultsViewProps) {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-border">
-                  {successRecords.map((rec, idx) => {
-                    const isEditing = editingId === idx;
+                  {paginatedSuccess.map((rec, idx) => {
+                    const absoluteIdx = (successPage - 1) * rowsPerPage + idx;
+                    const isEditing = editingId === absoluteIdx;
                     return (
-                      <tr key={idx} className="hover:bg-zinc-100/40 dark:hover:bg-zinc-900/20 transition-all">
+                      <tr key={absoluteIdx} className="hover:bg-zinc-100/40 dark:hover:bg-zinc-900/20 transition-all">
                         {/* Created At */}
                         <td className="px-4 py-2.5 text-zinc-700 dark:text-zinc-300">
                           {isEditing ? (
@@ -454,7 +472,7 @@ export default function ResultsView({ result, onReset }: ResultsViewProps) {
                             {isEditing ? (
                               <>
                                 <button
-                                  onClick={() => saveEdit(idx)}
+                                  onClick={() => saveEdit(absoluteIdx)}
                                   className="text-xs font-semibold text-indigo-500 dark:text-indigo-400 hover:text-indigo-650 dark:hover:text-indigo-300"
                                 >
                                   Save
@@ -469,14 +487,14 @@ export default function ResultsView({ result, onReset }: ResultsViewProps) {
                             ) : (
                               <>
                                 <button
-                                  onClick={() => startEdit(idx, rec)}
+                                  onClick={() => startEdit(absoluteIdx, rec)}
                                   className="p-1 rounded bg-white dark:bg-zinc-900 border border-border dark:border-zinc-850 hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-500 dark:text-zinc-400 hover:text-zinc-800 dark:hover:text-zinc-200 transition-colors"
                                   title="Edit Record"
                                 >
                                   <Edit3 className="w-3.5 h-3.5" />
                                 </button>
                                 <button
-                                  onClick={() => deleteRecord(idx)}
+                                  onClick={() => deleteRecord(absoluteIdx)}
                                   className="p-1 rounded bg-white dark:bg-zinc-900 border border-border dark:border-zinc-850 hover:bg-red-50 dark:hover:bg-zinc-800 text-red-500 dark:text-red-400 hover:text-red-600 hover:bg-red-500/10 transition-colors"
                                   title="Delete Record"
                                 >
@@ -494,6 +512,32 @@ export default function ResultsView({ result, onReset }: ResultsViewProps) {
             )}
           </div>
         )}
+        {/* Success Pagination Controls */}
+        {activeTab === 'success' && totalSuccessPages > 1 && (
+          <div className="flex items-center justify-between p-4 rounded-xl border border-border bg-card/10 backdrop-blur-sm mt-4">
+            <button
+              onClick={() => setSuccessPage(prev => Math.max(1, prev - 1))}
+              disabled={successPage === 1}
+              className="flex items-center space-x-1 px-3 py-1.5 rounded-lg border border-border bg-white/5 text-xs font-medium text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 hover:dark:text-zinc-200 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
+            >
+              <ChevronLeft className="w-4 h-4" />
+              <span>Previous</span>
+            </button>
+            
+            <span className="text-xs text-zinc-500 dark:text-zinc-400 font-medium">
+              Page {successPage} of {totalSuccessPages}
+            </span>
+
+            <button
+              onClick={() => setSuccessPage(prev => Math.min(totalSuccessPages, prev + 1))}
+              disabled={successPage === totalSuccessPages}
+              className="flex items-center space-x-1 px-3 py-1.5 rounded-lg border border-border bg-white/5 text-xs font-medium text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 hover:dark:text-zinc-200 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
+            >
+              <span>Next</span>
+              <ChevronRight className="w-4 h-4" />
+            </button>
+          </div>
+        )}
 
         {activeTab === 'skipped' && (
           <div className="overflow-x-auto rounded-xl border border-border bg-card/20 backdrop-blur-md">
@@ -509,21 +553,50 @@ export default function ResultsView({ result, onReset }: ResultsViewProps) {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-border">
-                  {result.skipped.map((skip, idx) => (
-                    <tr key={idx} className="hover:bg-zinc-100/40 dark:hover:bg-zinc-900/10 transition-all">
-                      <td className="px-4 py-2.5 text-zinc-500 dark:text-zinc-400 font-mono">#{idx + 1}</td>
-                      <td className="px-4 py-2.5 font-medium text-red-500 dark:text-red-400 flex items-center space-x-1.5">
-                        <AlertCircle className="w-3.5 h-3.5" />
-                        <span>{skip.reason}</span>
-                      </td>
-                      <td className="px-4 py-2.5 text-zinc-600 dark:text-zinc-400 max-w-lg font-mono text-[10px] break-all">
-                        {JSON.stringify(skip.row)}
-                      </td>
-                    </tr>
-                  ))}
+                  {paginatedSkipped.map((skip, idx) => {
+                    const absoluteIdx = (skippedPage - 1) * rowsPerPage + idx;
+                    return (
+                      <tr key={absoluteIdx} className="hover:bg-zinc-100/40 dark:hover:bg-zinc-900/10 transition-all">
+                        <td className="px-4 py-2.5 text-zinc-500 dark:text-zinc-400 font-mono">#{absoluteIdx + 1}</td>
+                        <td className="px-4 py-2.5 font-medium text-red-500 dark:text-red-400 flex items-center space-x-1.5">
+                          <AlertCircle className="w-3.5 h-3.5" />
+                          <span>{skip.reason}</span>
+                        </td>
+                        <td className="px-4 py-2.5 text-zinc-600 dark:text-zinc-400 max-w-lg font-mono text-[10px] break-all">
+                          {JSON.stringify(skip.row)}
+                        </td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             )}
+          </div>
+        )}
+        {/* Skipped Pagination Controls */}
+        {activeTab === 'skipped' && totalSkippedPages > 1 && (
+          <div className="flex items-center justify-between p-4 rounded-xl border border-border bg-card/10 backdrop-blur-sm mt-4">
+            <button
+              onClick={() => setSkippedPage(prev => Math.max(1, prev - 1))}
+              disabled={skippedPage === 1}
+              className="flex items-center space-x-1 px-3 py-1.5 rounded-lg border border-border bg-white/5 text-xs font-medium text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 hover:dark:text-zinc-200 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
+            >
+              <ChevronLeft className="w-4 h-4" />
+              <span>Previous</span>
+            </button>
+            
+            <span className="text-xs text-zinc-500 dark:text-zinc-400 font-medium">
+              Page {skippedPage} of {totalSkippedPages}
+            </span>
+
+            <button
+              onClick={() => setSkippedPage(prev => Math.min(totalSkippedPages, prev + 1))}
+              disabled={skippedPage === totalSkippedPages}
+              className="flex items-center space-x-1 px-3 py-1.5 rounded-lg border border-border bg-white/5 text-xs font-medium text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 hover:dark:text-zinc-200 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
+            >
+              <span>Next</span>
+              <ChevronRight className="w-4 h-4" />
+            </button>
           </div>
         )}
       </div>
