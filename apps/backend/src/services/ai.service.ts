@@ -194,6 +194,11 @@ export class AIService {
   }
 
   private static async mapBatchWithFallbacks(batch: CSVRow[]): Promise<{ successful: CRMRecord[]; skipped: { row: CSVRow; reason: string }[] }> {
+    const result = await this.executeBatchWithFallbacks(batch);
+    return this.reconcileBatch(batch, result);
+  }
+
+  private static async executeBatchWithFallbacks(batch: CSVRow[]): Promise<{ successful: CRMRecord[]; skipped: { row: CSVRow; reason: string }[] }> {
     const geminiKey = process.env.GEMINI_API_KEY;
     const groqKey = process.env.GROQ_API_KEY;
     const sambanovaKey = process.env.SAMBANOVA_API_KEY;
@@ -468,5 +473,60 @@ Ensure output is ONLY the raw JSON object. Do not include markdown wraps.
       console.warn('AI output parsing failed, running heuristic parser fallback.');
     }
     return this.mapHeuristic(originalRows);
+  }
+
+  private static reconcileBatch(batch: CSVRow[], result: { successful: CRMRecord[]; skipped: { row: CSVRow; reason: string }[] }): { successful: CRMRecord[]; skipped: { row: CSVRow; reason: string }[] } {
+    const finalSuccessful = [...result.successful];
+    const finalSkipped = [...result.skipped];
+
+    // Keep track of which input rows were successfully matched
+    const matchedInputRows = new Set<CSVRow>();
+
+    // 1. Mark skipped rows as matched
+    for (const skip of result.skipped) {
+      const match = batch.find(r => {
+        const rEmail = r.First_Email || r.email || r['Mail Address'] || '';
+        const rPhone = r.Cellular_Phone || r.mobile || r['Contact Number'] || '';
+        const rName = r.Client_FullName || r.name || r['Full Name'] || '';
+        
+        return (rEmail && sMatch(rEmail, skip.row.email || skip.row.First_Email || skip.row['Mail Address'])) ||
+               (rPhone && sMatch(rPhone, skip.row.mobile || skip.row.Cellular_Phone || skip.row['Contact Number'])) ||
+               (rName && sMatch(rName, skip.row.name || skip.row.Client_FullName || skip.row['Full Name']));
+      });
+      if (match) matchedInputRows.add(match);
+    }
+
+    // 2. Mark successful rows as matched
+    for (const succ of result.successful) {
+      const match = batch.find(r => {
+        const rEmail = r.First_Email || r.email || r['Mail Address'] || '';
+        const rPhone = r.Cellular_Phone || r.mobile || r['Contact Number'] || '';
+        const rName = r.Client_FullName || r.name || r['Full Name'] || '';
+
+        return (succ.email && sMatch(rEmail, succ.email)) ||
+               (succ.mobile_without_country_code && sMatch(rPhone, succ.mobile_without_country_code)) ||
+               (succ.name && sMatch(rName, succ.name));
+      });
+      if (match) matchedInputRows.add(match);
+    }
+
+    // 3. Any row in the batch that is NOT matched is missing!
+    const missingRows = batch.filter(r => !matchedInputRows.has(r));
+
+    if (missingRows.length > 0) {
+      console.log(`Reconciliation: ${missingRows.length} rows dropped by LLM. Rescuing via heuristics...`);
+      const heuristicRes = this.mapHeuristic(missingRows);
+      finalSuccessful.push(...heuristicRes.successful);
+      finalSkipped.push(...heuristicRes.skipped);
+    }
+
+    return { successful: finalSuccessful, skipped: finalSkipped };
+
+    function sMatch(a: any, b: any): boolean {
+      if (!a || !b) return false;
+      const sa = String(a).toLowerCase().replace(/[^a-z0-9]/g, '');
+      const sb = String(b).toLowerCase().replace(/[^a-z0-9]/g, '');
+      return sa === sb || sa.includes(sb) || sb.includes(sa);
+    }
   }
 }
