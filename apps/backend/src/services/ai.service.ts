@@ -2,6 +2,8 @@ import { GoogleGenerativeAI } from '@google/generative-ai';
 import { CSVRow, CRMRecord, CRMStatus, DataSource } from '../types';
 
 export class AIService {
+  private static disabledProviders = new Set<string>();
+
   private static parseStatus(statusStr: string): CRMStatus {
     const s = statusStr?.toUpperCase().trim();
     if (s?.includes('GOOD') || s?.includes('FOLLOW') || s?.includes('UP')) return 'GOOD_LEAD_FOLLOW_UP';
@@ -166,11 +168,8 @@ export class AIService {
     return { successful, skipped };
   }
 
-  /**
-   * Processes CSV rows using AI semantic mapping in batches of 20 rows.
-   * Standardizes fields using the multi-provider fallback chain.
-   */
   public static async mapWithAI(rows: CSVRow[]): Promise<{ successful: CRMRecord[]; skipped: { row: CSVRow; reason: string }[] }> {
+    this.disabledProviders.clear();
     const BATCH_SIZE = 5; // Safe default batch size to prevent JSON truncation and rate limit exhausts
     const batches: CSVRow[][] = [];
     for (let i = 0; i < rows.length; i += BATCH_SIZE) {
@@ -231,14 +230,14 @@ export class AIService {
   }
 
   private static async executeBatchWithFallbacks(batch: CSVRow[]): Promise<{ successful: CRMRecord[]; skipped: { row: CSVRow; reason: string }[] }> {
-    const geminiKey = process.env.GEMINI_API_KEY;
-    const groqKey = process.env.GROQ_API_KEY;
-    const sambanovaKey = process.env.SAMBANOVA_API_KEY;
-    const cerebrasKey = process.env.CEREBRAS_API_KEY;
+    const geminiKey = !this.disabledProviders.has('gemini') ? process.env.GEMINI_API_KEY : null;
+    const groqKey = !this.disabledProviders.has('groq') ? process.env.GROQ_API_KEY : null;
+    const sambanovaKey = !this.disabledProviders.has('sambanova') ? process.env.SAMBANOVA_API_KEY : null;
+    const cerebrasKey = !this.disabledProviders.has('cerebras') ? process.env.CEREBRAS_API_KEY : null;
 
     // Check if any keys are present
     if (!geminiKey && !groqKey && !sambanovaKey && !cerebrasKey) {
-      console.log('No AI keys detected for batch, running heuristics...');
+      console.log('No active AI keys detected for batch, running heuristics...');
       // Simulate slight network processing latency
       await new Promise(resolve => setTimeout(resolve, 800));
       return this.mapHeuristic(batch);
@@ -295,7 +294,13 @@ export class AIService {
       try {
         console.log(`Attempting Gemini model: ${modelName}...`);
         const model = ai.getGenerativeModel({ model: modelName });
-        const result = await model.generateContent(prompt);
+        // Use a Promise.race to abort hanging Google GenAI calls after 4 seconds
+        const resultPromise = model.generateContent(prompt);
+        const timeoutPromise = new Promise<never>((_, reject) =>
+          setTimeout(() => reject(new Error('Gemini request timed out')), 4000)
+        );
+        const result = await Promise.race([resultPromise, timeoutPromise]);
+        
         const response = await result.response;
         const text = response.text();
         if (text) {
@@ -304,6 +309,12 @@ export class AIService {
         }
       } catch (err: any) {
         console.warn(`Failed with model ${modelName}: ${err.message}`);
+        const errMsg = String(err.message || '').toLowerCase();
+        if (errMsg.includes('not found') || errMsg.includes('api key') || errMsg.includes('403') || errMsg.includes('404') || errMsg.includes('invalid')) {
+          console.warn(`Gemini returned fatal error. Disabling Gemini for this session.`);
+          this.disabledProviders.add('gemini');
+          throw err;
+        }
         lastError = err;
       }
     }
@@ -337,6 +348,10 @@ export class AIService {
     });
 
     if (!response.ok) {
+      if (response.status === 404 || response.status === 410 || response.status === 401 || response.status === 403) {
+        console.warn(`Groq returned fatal status ${response.status}. Disabling Groq for this session.`);
+        this.disabledProviders.add('groq');
+      }
       throw new Error(`Groq API returned status ${response.status}`);
     }
 
@@ -370,6 +385,10 @@ export class AIService {
     });
 
     if (!response.ok) {
+      if (response.status === 404 || response.status === 410 || response.status === 401 || response.status === 403) {
+        console.warn(`SambaNova returned fatal status ${response.status}. Disabling SambaNova for this session.`);
+        this.disabledProviders.add('sambanova');
+      }
       throw new Error(`SambaNova API returned status ${response.status}`);
     }
 
@@ -404,6 +423,10 @@ export class AIService {
     });
 
     if (!response.ok) {
+      if (response.status === 404 || response.status === 410 || response.status === 401 || response.status === 403) {
+        console.warn(`Cerebras returned fatal status ${response.status}. Disabling Cerebras for this session.`);
+        this.disabledProviders.add('cerebras');
+      }
       throw new Error(`Cerebras API returned status ${response.status}`);
     }
 
@@ -565,7 +588,16 @@ Ensure output is ONLY the raw JSON object. Do not include markdown wraps.
   private static async fetchWithRetry(url: string, options: RequestInit, retries = 3, delay = 500): Promise<Response> {
     for (let i = 0; i < retries; i++) {
       try {
-        const response = await fetch(url, options);
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 4000);
+
+        const response = await fetch(url, {
+          ...options,
+          signal: controller.signal
+        });
+        
+        clearTimeout(timeoutId);
+
         if (response.status === 429) {
           const sleepTime = delay * Math.pow(2, i) + Math.random() * 200;
           console.warn(`HTTP 429 Rate Limit on ${url}. Backing off for ${Math.round(sleepTime)}ms... (Attempt ${i + 1}/${retries})`);
@@ -574,6 +606,9 @@ Ensure output is ONLY the raw JSON object. Do not include markdown wraps.
         }
         return response;
       } catch (err: any) {
+        if (err.name === 'AbortError') {
+          console.warn(`Request to ${url} timed out (exceeded 4000ms).`);
+        }
         if (i === retries - 1) throw err;
         const sleepTime = delay * Math.pow(2, i) + Math.random() * 200;
         await new Promise(resolve => setTimeout(resolve, sleepTime));
