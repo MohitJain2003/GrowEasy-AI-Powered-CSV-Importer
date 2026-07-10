@@ -10,6 +10,50 @@ interface ResultsViewProps {
   onReset: () => void;
 }
 
+// Custom NoteCell with 1-second expansion delay to prevent scattering/layout jump
+function NoteCell({ note }: { note: string }) {
+  const [isExpanded, setIsExpanded] = useState(false);
+  const timeoutRef = React.useRef<NodeJS.Timeout | null>(null);
+
+  const handleMouseEnter = () => {
+    // Start timeout for 1 second (1000ms)
+    timeoutRef.current = setTimeout(() => {
+      setIsExpanded(true);
+    }, 1000);
+  };
+
+  const handleMouseLeave = () => {
+    // Cancel timeout if cursor leaves before 1 second
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+      timeoutRef.current = null;
+    }
+    setIsExpanded(false);
+  };
+
+  React.useEffect(() => {
+    return () => {
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+      }
+    };
+  }, []);
+
+  if (!note) return <span className="text-zinc-400 dark:text-zinc-600">-</span>;
+
+  return (
+    <div
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
+      className={`break-words whitespace-normal leading-relaxed cursor-help transition-all duration-300 ${
+        isExpanded ? 'line-clamp-none' : 'line-clamp-2'
+      }`}
+    >
+      {note}
+    </div>
+  );
+}
+
 export default function ResultsView({ result, onReset }: ResultsViewProps) {
   const [activeTab, setActiveTab] = useState<'success' | 'skipped'>('success');
   const [successRecords, setSuccessRecords] = useState<CRMRecord[]>(result.successful);
@@ -131,7 +175,7 @@ export default function ResultsView({ result, onReset }: ResultsViewProps) {
         >
           <div className="text-xs font-medium text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">Total Imported</div>
           <div className="text-3xl font-bold text-zinc-800 dark:text-zinc-100">{totalImported}</div>
-          <div className="text-[10px] text-zinc-500 dark:text-zinc-400">Successfully mapped leads</div>
+          <div className="text-[10px] text-zinc-550 dark:text-zinc-400">Successfully mapped leads</div>
         </motion.div>
 
         <motion.div
@@ -152,7 +196,7 @@ export default function ResultsView({ result, onReset }: ResultsViewProps) {
           className="p-5 rounded-2xl glass-panel text-left space-y-1"
         >
           <div className="text-xs font-medium text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">Completeness</div>
-          <div className="text-3xl font-bold text-indigo-600 dark:text-indigo-400">{completenessScore}%</div>
+          <div className="text-3xl font-bold text-indigo-650 dark:text-indigo-400">{completenessScore}%</div>
           <div className="text-[10px] text-zinc-500 dark:text-zinc-400">Field population density</div>
         </motion.div>
 
@@ -185,7 +229,7 @@ export default function ResultsView({ result, onReset }: ResultsViewProps) {
           className={`px-4 py-2.5 text-sm font-medium border-b-2 transition-all flex items-center space-x-2 ${
             activeTab === 'skipped'
               ? 'border-indigo-500 text-indigo-400'
-              : 'border-transparent text-zinc-400 hover:text-zinc-200'
+              : 'border-transparent text-zinc-400 hover:text-zinc-205 dark:hover:text-white'
           }`}
         >
           <AlertCircle className="w-4 h-4 text-red-400" />
@@ -390,7 +434,7 @@ export default function ResultsView({ result, onReset }: ResultsViewProps) {
                         </td>
 
                         {/* Note */}
-                        <td className="px-4 py-2.5 text-zinc-500 dark:text-zinc-400 max-w-xs" title={rec.crm_note}>
+                        <td className="px-4 py-2.5 text-zinc-500 dark:text-zinc-400 max-w-xs">
                           {isEditing ? (
                             <input
                               type="text"
@@ -400,9 +444,7 @@ export default function ResultsView({ result, onReset }: ResultsViewProps) {
                               className="w-full bg-white dark:bg-zinc-800 border border-border dark:border-zinc-700 rounded px-1.5 py-0.5 text-zinc-900 dark:text-zinc-100"
                             />
                           ) : (
-                            <div className="break-words whitespace-normal line-clamp-2 hover:line-clamp-none transition-all duration-200 cursor-pointer leading-relaxed">
-                              {rec.crm_note || <span className="text-zinc-400 dark:text-zinc-600">-</span>}
-                            </div>
+                            <NoteCell note={rec.crm_note} />
                           )}
                         </td>
 
