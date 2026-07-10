@@ -7,3 +7,10 @@ apps/backend/build/
 .claude/
 *.log
 .DS_Store
+
+# Local assignment assets and test files
+PLAN.md
+Software Developer (Intern _ Full-Time) Assignment.pdf
+complex_test_leads.csv
+test_leads.csv
+test_html.html
