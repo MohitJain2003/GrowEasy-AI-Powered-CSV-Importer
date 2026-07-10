@@ -252,13 +252,21 @@ export class AIService {
         this.disabledProviders.add('groq'); // Disable for session immediately on first failure
 
         // Resilient Fail-Fast: If Groq failed due to a network connection timeout or abort,
-        // assume the environment is offline/sandboxed and disable all other providers to prevent cascade timeouts.
+        // perform a quick internet check to see if the environment is actually offline.
         const errMsg = String(err.message || '').toLowerCase();
         if (errMsg.includes('timed out') || errMsg.includes('fetch failed') || errMsg.includes('aborted') || errMsg.includes('timeout')) {
-          console.warn('Network timeout detected on first provider. Disabling all external AI models to prevent timeout cascades.');
-          this.disabledProviders.add('sambanova');
-          this.disabledProviders.add('cerebras');
-          this.disabledProviders.add('gemini');
+          try {
+            const controller = new AbortController();
+            const timer = setTimeout(() => controller.abort(), 1200);
+            await fetch('https://www.google.com', { method: 'HEAD', signal: controller.signal });
+            clearTimeout(timer);
+            console.log('Internet connection is active. Keeping other AI models enabled for best results.');
+          } catch (netErr) {
+            console.warn('Network is offline. Disabling all other AI models to prevent timeout cascades.');
+            this.disabledProviders.add('sambanova');
+            this.disabledProviders.add('cerebras');
+            this.disabledProviders.add('gemini');
+          }
         }
       }
     }
