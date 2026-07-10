@@ -171,7 +171,7 @@ export class AIService {
    * Standardizes fields using the multi-provider fallback chain.
    */
   public static async mapWithAI(rows: CSVRow[]): Promise<{ successful: CRMRecord[]; skipped: { row: CSVRow; reason: string }[] }> {
-    const BATCH_SIZE = 20;
+    const BATCH_SIZE = 5; // Safe default batch size to prevent JSON truncation and rate limit exhausts
     const batches: CSVRow[][] = [];
     for (let i = 0; i < rows.length; i += BATCH_SIZE) {
       batches.push(rows.slice(i, i + BATCH_SIZE));
@@ -180,7 +180,7 @@ export class AIService {
     const successful: CRMRecord[] = [];
     const skipped: { row: CSVRow; reason: string }[] = [];
 
-    console.log(`Starting AI extraction on ${rows.length} rows in ${batches.length} batches...`);
+    console.log(`Starting Resilient AI extraction on ${rows.length} rows in ${batches.length} batches (size 5)...`);
 
     for (let i = 0; i < batches.length; i++) {
       const batch = batches[i];
@@ -194,8 +194,40 @@ export class AIService {
   }
 
   private static async mapBatchWithFallbacks(batch: CSVRow[]): Promise<{ successful: CRMRecord[]; skipped: { row: CSVRow; reason: string }[] }> {
-    const result = await this.executeBatchWithFallbacks(batch);
+    const result = await this.mapResilientBatch(batch);
     return this.reconcileBatch(batch, result);
+  }
+
+  private static async mapResilientBatch(batch: CSVRow[], depth = 0): Promise<{ successful: CRMRecord[]; skipped: { row: CSVRow; reason: string }[] }> {
+    if (batch.length === 0) return { successful: [], skipped: [] };
+
+    try {
+      const result = await this.executeBatchWithFallbacks(batch);
+      if (result.successful.length === 0 && result.skipped.length === 0) {
+        throw new Error('AI response returned empty payload.');
+      }
+      return result;
+    } catch (err: any) {
+      console.warn(`ResilientBatch: batch of size ${batch.length} failed at depth ${depth}. Error: ${err.message}`);
+      
+      if (batch.length > 1) {
+        const mid = Math.floor(batch.length / 2);
+        const left = batch.slice(0, mid);
+        const right = batch.slice(mid);
+        console.log(`ResilientBatch: Splitting failed batch of ${batch.length} -> Left: ${left.length}, Right: ${right.length}`);
+
+        const leftRes = await this.mapResilientBatch(left, depth + 1);
+        const rightRes = await this.mapResilientBatch(right, depth + 1);
+
+        return {
+          successful: [...leftRes.successful, ...rightRes.successful],
+          skipped: [...leftRes.skipped, ...rightRes.skipped]
+        };
+      }
+
+      console.warn(`ResilientBatch: Single-record batch failed. Rescuing via heuristics...`);
+      return this.mapHeuristic(batch);
+    }
   }
 
   private static async executeBatchWithFallbacks(batch: CSVRow[]): Promise<{ successful: CRMRecord[]; skipped: { row: CSVRow; reason: string }[] }> {
@@ -282,7 +314,7 @@ export class AIService {
 
   private static async mapWithGroq(rows: CSVRow[], apiKey: string): Promise<{ successful: CRMRecord[]; skipped: { row: CSVRow; reason: string }[] }> {
     console.log('Attempting Groq model: llama-3.1-8b-instant...');
-    const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+    const response = await this.fetchWithRetry('https://api.groq.com/openai/v1/chat/completions', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -316,7 +348,7 @@ export class AIService {
 
   private static async mapWithSambaNova(rows: CSVRow[], apiKey: string): Promise<{ successful: CRMRecord[]; skipped: { row: CSVRow; reason: string }[] }> {
     console.log('Attempting SambaNova model: Meta-Llama-3.1-8B-Instruct...');
-    const response = await fetch('https://api.sambanova.ai/v1/chat/completions', {
+    const response = await this.fetchWithRetry('https://api.sambanova.ai/v1/chat/completions', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -349,7 +381,7 @@ export class AIService {
 
   private static async mapWithCerebras(rows: CSVRow[], apiKey: string): Promise<{ successful: CRMRecord[]; skipped: { row: CSVRow; reason: string }[] }> {
     console.log('Attempting Cerebras model: llama3.1-8b...');
-    const response = await fetch('https://api.cerebras.ai/v1/chat/completions', {
+    const response = await this.fetchWithRetry('https://api.cerebras.ai/v1/chat/completions', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -528,5 +560,25 @@ Ensure output is ONLY the raw JSON object. Do not include markdown wraps.
       const sb = String(b).toLowerCase().replace(/[^a-z0-9]/g, '');
       return sa === sb || sa.includes(sb) || sb.includes(sa);
     }
+  }
+
+  private static async fetchWithRetry(url: string, options: RequestInit, retries = 3, delay = 500): Promise<Response> {
+    for (let i = 0; i < retries; i++) {
+      try {
+        const response = await fetch(url, options);
+        if (response.status === 429) {
+          const sleepTime = delay * Math.pow(2, i) + Math.random() * 200;
+          console.warn(`HTTP 429 Rate Limit on ${url}. Backing off for ${Math.round(sleepTime)}ms... (Attempt ${i + 1}/${retries})`);
+          await new Promise(resolve => setTimeout(resolve, sleepTime));
+          continue;
+        }
+        return response;
+      } catch (err: any) {
+        if (i === retries - 1) throw err;
+        const sleepTime = delay * Math.pow(2, i) + Math.random() * 200;
+        await new Promise(resolve => setTimeout(resolve, sleepTime));
+      }
+    }
+    throw new Error(`Max retries reached for ${url}`);
   }
 }
