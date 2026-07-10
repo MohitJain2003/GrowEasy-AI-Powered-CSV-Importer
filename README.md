@@ -15,14 +15,15 @@ An intelligent, high-performance, full-stack CSV importer designed for GrowEasy.
    - Fully optimized with pagination controls (10 rows per page) to prevent browser paint lag on large datasets.
    - Sticky header support with horizontal and vertical scrolling.
 
-3. **AI Semantic Mapping with Batch Processing**
-   - **Batch Processing**: Splits input datasets into chunks of **20 rows** each to comply with API limits and minimize rates or token exhausts.
+3. **AI Semantic Mapping with Resilient Batching**
+   - **Batch Processing**: Splits input datasets into chunks of **5 rows** each to completely eliminate JSON truncation risks, optimize token usage, and prevent attention degradation in smaller LLMs.
    - **Multi-Provider Fallback Chain**: Sequential fallback architecture designed to guarantee successful imports even under rate-limiting conditions:
      1. **Groq** (First: `llama-3.1-8b-instant`)
      2. **SambaNova** (Second: `Meta-Llama-3.1-8B-Instruct`)
      3. **Cerebras** (Third: `llama3.1-8b`)
      4. **Gemini** (Fourth: `gemini-1.5-flash` / `gemini-1.5-pro` / `gemini-pro`)
      5. **Local Heuristics Engine** (High-fidelity regular expression-based fallback)
+   - **Resilience Systems**: Features progressive divide-and-conquer batch subdivision and jittered exponential backoffs for handling API rate limits.
 
 4. **Bento-style Metrics Dashboard & Inline Editing**
    - Informative Bento grid displaying: Total Mapped, Total Skipped, Completeness Score, and AI Processing Time.
@@ -39,7 +40,7 @@ An intelligent, high-performance, full-stack CSV importer designed for GrowEasy.
 - **Monorepo Structure**: Uses npm workspaces for running frontend and backend concurrently.
 
 ```text
-Assignment/
+groweasy-crm-csv-importer/
 ├── apps/
 │   ├── frontend/     # Next.js SPA
 │   └── backend/      # Express REST API & AI Mapper Service
