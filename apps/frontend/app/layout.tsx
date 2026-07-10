@@ -1,17 +1,4 @@
 import '../styles/globals.css';
-import { Outfit, JetBrains_Mono } from 'next/font/google';
-
-const outfit = Outfit({
-  subsets: ['latin'],
-  variable: '--font-sans',
-  display: 'swap',
-});
-
-const jetbrainsMono = JetBrains_Mono({
-  subsets: ['latin'],
-  variable: '--font-mono',
-  display: 'swap',
-});
 
 export const metadata = {
   title: 'GrowEasy CRM | AI-Powered CSV Lead Importer',
@@ -26,7 +13,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className={`${outfit.variable} ${jetbrainsMono.variable}`}>
+    <html lang="en">
       <body className="bg-background text-foreground antialiased selection:bg-indigo-500/30">
         <div className="relative min-h-screen flex flex-col justify-between">
           {/* Fixed Header */}
