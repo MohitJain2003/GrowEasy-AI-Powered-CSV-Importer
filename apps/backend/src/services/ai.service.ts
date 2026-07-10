@@ -170,16 +170,23 @@ export class AIService {
 
   public static async mapWithAI(rows: CSVRow[]): Promise<{ successful: CRMRecord[]; skipped: { row: CSVRow; reason: string }[] }> {
     this.disabledProviders.clear();
+    
+    // For large datasets, process the first 100 rows with AI (to show intelligent mappings)
+    // and run the rest through the fast heuristics engine to prevent HTTP timeouts.
+    const AI_CAP = 100;
+    const aiRows = rows.slice(0, AI_CAP);
+    const heuristicRows = rows.slice(AI_CAP);
+
     const BATCH_SIZE = 5; // Safe default batch size to prevent JSON truncation and rate limit exhausts
     const batches: CSVRow[][] = [];
-    for (let i = 0; i < rows.length; i += BATCH_SIZE) {
-      batches.push(rows.slice(i, i + BATCH_SIZE));
+    for (let i = 0; i < aiRows.length; i += BATCH_SIZE) {
+      batches.push(aiRows.slice(i, i + BATCH_SIZE));
     }
 
     const successful: CRMRecord[] = [];
     const skipped: { row: CSVRow; reason: string }[] = [];
 
-    console.log(`Starting Resilient AI extraction on ${rows.length} rows in ${batches.length} batches (size 5)...`);
+    console.log(`Starting Resilient AI extraction on first ${aiRows.length} rows in ${batches.length} batches...`);
 
     for (let i = 0; i < batches.length; i++) {
       const batch = batches[i];
@@ -187,6 +194,13 @@ export class AIService {
       const batchResult = await this.mapBatchWithFallbacks(batch);
       successful.push(...batchResult.successful);
       skipped.push(...batchResult.skipped);
+    }
+
+    if (heuristicRows.length > 0) {
+      console.log(`Processing remaining ${heuristicRows.length} rows using high-speed heuristics fallback...`);
+      const heuristicResult = this.mapHeuristic(heuristicRows);
+      successful.push(...heuristicResult.successful);
+      skipped.push(...heuristicResult.skipped);
     }
 
     return { successful, skipped };
