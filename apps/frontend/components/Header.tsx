@@ -47,7 +47,7 @@ export default function Header() {
           <span className="font-sans font-extrabold text-base tracking-tight bg-gradient-to-r from-zinc-900 to-zinc-700 dark:from-white dark:to-zinc-300 bg-clip-text text-transparent">
             GrowEasy
           </span>
-          <span className="ml-1 text-xs font-semibold px-2 py-0.5 rounded-full bg-zinc-200 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400">
+          <span className="ml-1 text-[10px] sm:text-xs font-semibold px-1.5 sm:px-2 py-0.5 rounded-full bg-zinc-200 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 hidden sm:inline-block">
             CRM Importer
           </span>
         </div>

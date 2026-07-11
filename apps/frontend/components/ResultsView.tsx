@@ -155,7 +155,7 @@ export default function ResultsView({ result, onReset }: ResultsViewProps) {
   return (
     <div className="space-y-8">
       {/* Top action header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <button
           onClick={onReset}
           className="flex items-center space-x-1.5 text-xs text-zinc-500 hover:text-zinc-800 dark:text-zinc-400 dark:hover:text-white transition-colors"
