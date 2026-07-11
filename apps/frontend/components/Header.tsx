@@ -36,7 +36,7 @@ export default function Header() {
   };
 
   return (
-    <header className="fixed top-0 left-0 right-0 h-16 z-50 glass-panel border-b border-border/40 flex items-center justify-between px-4 sm:px-8">
+    <header className="fixed top-0 left-0 right-0 h-16 z-50 glass-panel border-b border-border/40 flex items-center justify-between pl-4 pr-6 sm:px-8">
       {/* Brand logo & Title */}
       <div className="flex items-center space-x-3 cursor-pointer select-none">
         <div className="relative flex items-center justify-center w-9 h-9 rounded-xl bg-gradient-to-tr from-indigo-500 to-indigo-600 shadow-md shadow-indigo-500/20">
